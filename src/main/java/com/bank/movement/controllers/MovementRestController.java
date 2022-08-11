@@ -152,11 +152,13 @@ public class MovementRestController
     {
         log.info("[INI] update Movement");
         return dao.existsById(id).flatMap(check -> {
-            if (check)
+            if (check){
+                mov.setDateUpdate(LocalDateTime.now());
                 return dao.save(mov)
                         .doOnNext(movement -> log.info(movement.toString()))
                         .map(movement -> ResponseHandler.response("Done", HttpStatus.OK, movement)                )
                         .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)));
+            }
             else
                 return Mono.just(ResponseHandler.response("Not found", HttpStatus.NOT_FOUND, null));
 
