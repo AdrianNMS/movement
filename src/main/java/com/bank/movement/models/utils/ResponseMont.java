@@ -2,14 +2,13 @@ package com.bank.movement.models.utils;
 
 import com.bank.movement.models.documents.Parameter;
 import lombok.Data;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
 @Data
-public class ResponseParameter
+public class ResponseMont
 {
-    private List<Parameter> data;
+    private Mont data;
 
     private String message;
 

@@ -1,4 +1,4 @@
-package com.bank.pasive.models.utils;
+package com.bank.movement.models.utils;
 
 import lombok.Data;
 
@@ -6,6 +6,6 @@ import lombok.Data;
 public class Mont
 {
     private String idPasive;
-    private float mont;
+    private Float mont;
 
 }
