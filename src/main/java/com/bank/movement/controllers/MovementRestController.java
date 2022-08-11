@@ -4,6 +4,7 @@ import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.dao.MovementDao;
 import com.bank.movement.models.documents.Movement;
 import com.bank.movement.models.documents.Parameter;
+import com.bank.movement.models.emus.TypeMovement;
 import com.bank.movement.models.emus.TypePasiveMovement;
 import com.bank.movement.services.ParameterService;
 import org.slf4j.Logger;
@@ -43,6 +44,21 @@ public class MovementRestController
                 .doFinally(fin -> log.info("[END] findAll Movement"));
     }
 
+    @GetMapping("/clientMovements/{idClient}")
+    public Mono<ResponseEntity<Object>> findByIdClient(@PathVariable String idClient)
+    {
+        log.info("[INI] findByIdClient Movement");
+        return dao.findAll()
+                .filter(movement ->
+                    movement.getClientId().equals(idClient)
+                )
+                .collectList()
+                .map(movements -> ResponseHandler.response("Done", HttpStatus.OK, movements))
+                .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
+                .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)))
+                .doFinally(fin -> log.info("[END] findByIdClient Movement"));
+    }
+
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Object>> find(@PathVariable String id)
     {
@@ -69,6 +85,10 @@ public class MovementRestController
 
                     List<Parameter> parametersData = parameters.getData();
 
+                    AtomicReference<Integer> currentMovement = new AtomicReference<>(0);
+                    AtomicReference<Boolean> differentDates = new AtomicReference<>(false);
+                    AtomicReference<Integer> maxMovement = new AtomicReference<>(0);
+
                     mov.setTypePasiveMovement(TypePasiveMovement.fromInteger(parametersData.get(0).getCode()));
 
                     for (Parameter parameter: parametersData)
@@ -78,52 +98,51 @@ public class MovementRestController
                             float percentage = Float.parseFloat(parameter.getArgument());
                             mov.setComissionMont(mov.getMont()*percentage);
                         }
-                        else if (parameter.getValue().equals("2") && !parameter.getArgument().equals("false"))
+                        else if (parameter.getValue().equals("2") )
                         {
-                            int day = Integer.parseInt(parameter.getArgument());
-
-                            if(LocalDateTime.now().getDayOfMonth() != day)
-                                return Mono.just(ResponseHandler.response("You can't make movements today", HttpStatus.BAD_REQUEST, null));
+                            if(!parameter.getArgument().equals("false"))
+                            {
+                                int day = Integer.parseInt(parameter.getArgument());
+                                differentDates.set(LocalDateTime.now().getDayOfMonth() == day);
+                            }
+                            else
+                                differentDates.set(true);
                         }
-                        else if (parameter.getValue().equals("3") && !parameter.getArgument().equals("false"))
+                        else if (parameter.getValue().equals("3") )
                         {
-                            int maxMovement = Integer.parseInt(parameter.getArgument());
-                            AtomicReference<Integer> currentMovement = new AtomicReference<>(0);
+                            if(!parameter.getArgument().equals("false"))
+                                maxMovement.set(Integer.parseInt(parameter.getArgument()));
+                            else
+                                maxMovement.set(99999999);
+                        }
+                    }
 
-                            return dao.findAll().doOnNext(movement -> {
-                                String dateCreated = movement.getCreated().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-                                String dateNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-                                if(dateCreated.equals(dateNow) && movement.getTypePasiveMovement() == mov.getTypePasiveMovement())
-                                {
-                                    currentMovement.getAndSet(currentMovement.get() + 1);
-                                }
+                    return dao.findAll()
+                                .doOnNext(movement -> {
+                                    String dateCreated = movement.getCreated().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                                    String dateNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                                    if(dateCreated.equals(dateNow) && movement.getTypePasiveMovement() == mov.getTypePasiveMovement())
+                                    {
+                                        currentMovement.getAndSet(currentMovement.get() + 1);
+                                    }
                             }).collectList().flatMap(movements -> {
+                                log.info(differentDates.get().toString());
+                                log.info(currentMovement.get().toString());
+                                log.info(maxMovement.get().toString());
+                                if(differentDates.get() && currentMovement.get() < maxMovement.get())
+                                {
 
-                                if(currentMovement.get() >= maxMovement)
-                                {
-                                    return Mono.just(ResponseHandler.response("You can't do more movements", HttpStatus.BAD_REQUEST, null));
-                                }
-                                else
-                                {
                                     return dao.save(mov)
                                             .doOnNext(movement -> log.info(movement.toString()))
                                             .map(movement -> ResponseHandler.response("Done", HttpStatus.OK, movement)                )
                                             .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
                                             .doFinally(fin -> log.info("[END] create Movement"));
                                 }
+                                else
+                                {
+                                    return Mono.just(ResponseHandler.response("Not found", HttpStatus.BAD_REQUEST, null));
+                                }
                             });
-
-
-                        }
-                    }
-
-                    return dao.save(mov)
-                            .doOnNext(movement -> log.info(movement.toString()))
-                            .map(movement -> ResponseHandler.response("Done", HttpStatus.OK, movement)                )
-                            .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
-                            .doFinally(fin -> log.info("[END] create Movement"));
-
-
                 })
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
@@ -157,4 +176,32 @@ public class MovementRestController
                 return Mono.just(ResponseHandler.response("Not found", HttpStatus.NOT_FOUND, null));
         }).doFinally(fin -> log.info("[END] delete Movement"));
     }
+
+    @GetMapping("/balance/{id}")
+    public Mono<ResponseEntity<Object>> getBalance(@PathVariable("id") String id)
+    {
+        log.info("[INI] getBalance Movement");
+        log.info(id);
+
+        AtomicReference<Float> balance = new AtomicReference<>((float) 0);
+
+        return dao.findAll()
+                .doOnNext(movement -> {
+                    if(movement.getClientId().equals(id))
+                        if(movement.getTypeMovement().equals(TypeMovement.DEPOSITS))
+                        {
+                            balance.set((balance.get() - movement.getComissionMont()) + movement.getMont());
+                        }
+                        else if(movement.getTypeMovement().equals(TypeMovement.WITHDRAWALS))
+                        {
+                            balance.set((balance.get() - movement.getComissionMont())  - movement.getMont());
+                        }
+                })
+                .collectList()
+                .map(movements -> ResponseHandler.response("Done", HttpStatus.OK, balance.get()))
+                .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
+                .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)))
+                .doFinally(fin -> log.info("[END] getBalance Movement"));
+    }
+
 }
