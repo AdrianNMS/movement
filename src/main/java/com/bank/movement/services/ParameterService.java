@@ -1,6 +1,5 @@
 package com.bank.movement.services;
 
-import com.bank.movement.models.documents.Parameter;
 import com.bank.movement.models.utils.Mont;
 import com.bank.movement.models.utils.ResponseMont;
 import com.bank.movement.models.utils.ResponseParameter;
