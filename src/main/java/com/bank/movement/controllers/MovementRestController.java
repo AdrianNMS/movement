@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -72,7 +73,7 @@ public class MovementRestController
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Object>> create(@RequestBody Movement mov)
+    public Mono<ResponseEntity<Object>> create(@Valid  @RequestBody Movement mov)
     {
         log.info("[INI] create Movement");
         mov.setCreated(LocalDateTime.now());
@@ -148,7 +149,7 @@ public class MovementRestController
     }
 
     @PutMapping("/{id}")
-    public Mono<ResponseEntity<Object>> update(@PathVariable("id") String id, @RequestBody Movement mov)
+    public Mono<ResponseEntity<Object>> update(@PathVariable("id") String id,@Valid @RequestBody Movement mov)
     {
         log.info("[INI] update Movement");
         return dao.existsById(id).flatMap(check -> {

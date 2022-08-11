@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,8 +18,11 @@ public class Movement extends Audit
 {
     @Id
     private String id;
+    @NotNull(message = "pasiveId must not be null")
     private String pasiveId;
+    @NotNull(message = "clientId must not be null")
     private String clientId;
+    @NotNull(message = "typeMovement must not be null")
     private TypeMovement typeMovement;
     private TypePasiveMovement typePasiveMovement;
     private float mont;
