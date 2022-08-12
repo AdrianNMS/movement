@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public interface MovementService
+public interface IMovementService
 {
     Mono<List<Movement>> FindAll();
     Mono<List<Movement>> findByIdClient(String idClient);

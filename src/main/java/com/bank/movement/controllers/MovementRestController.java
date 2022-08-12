@@ -3,8 +3,8 @@ package com.bank.movement.controllers;
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.documents.Movement;
 import com.bank.movement.models.utils.MovementConditions;
-import com.bank.movement.services.MovementService;
-import com.bank.movement.services.ParameterService;
+import com.bank.movement.services.IMovementService;
+import com.bank.movement.services.IParameterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +21,10 @@ import java.time.LocalDateTime;
 public class MovementRestController
 {
     @Autowired
-    private MovementService movementService;
+    private IMovementService movementService;
 
     @Autowired
-    private ParameterService parameterService;
+    private IParameterService parameterService;
     private static final Logger log = LoggerFactory.getLogger(MovementRestController.class);
 
     @GetMapping
@@ -68,7 +68,7 @@ public class MovementRestController
 
         MovementConditions movCon = new MovementConditions();
 
-        return MovementRestControllerCreateHelper.CreateMovementSequence(movCon,mov,movementService,log,parameterService);
+        return MovementRestControllerCreateHelper.CreateMovementSequence(movCon,mov, movementService,log,parameterService);
     }
 
     @PutMapping("/{id}")
@@ -79,7 +79,7 @@ public class MovementRestController
 
         MovementConditions movCon = new MovementConditions();
 
-        return MovementRestControllerUpdateHelper.UpdateMovementSequence(movCon,mov,movementService,log,parameterService);
+        return MovementRestControllerUpdateHelper.UpdateMovementSequence(movCon,mov, movementService,log,parameterService);
     }
 
     @DeleteMapping("/{id}")

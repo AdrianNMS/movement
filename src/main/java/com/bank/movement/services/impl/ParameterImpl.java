@@ -1,21 +1,17 @@
 package com.bank.movement.services.impl;
 
-import com.bank.movement.models.documents.Parameter;
 import com.bank.movement.models.utils.Mont;
 import com.bank.movement.models.utils.ResponseMont;
 import com.bank.movement.models.utils.ResponseParameter;
-import com.bank.movement.services.ParameterService;
+import com.bank.movement.services.IParameterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Service
-public class ParameterImpl implements ParameterService {
+public class ParameterImpl implements IParameterService {
 
     @Autowired
     WebClient webClient;

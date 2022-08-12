@@ -4,17 +4,12 @@ import com.bank.movement.models.emus.TypeMovement;
 import com.bank.movement.models.emus.TypePasiveMovement;
 import com.bank.movement.models.utils.Audit;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Data
 @Document(collection = "movements")
@@ -29,9 +24,11 @@ public class Movement extends Audit
     @NotNull(message = "typeMovement must not be null")
     private TypeMovement typeMovement;
     private TypePasiveMovement typePasiveMovement;
-    private float mont;
-    private float comissionMont;
-    private float comissionMaxMont;
+    @NotNull(message = "mont must not be null")
+    @Min(1)
+    private Float mont;
+    private Float comissionMont;
+    private Float comissionMaxMont;
 
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy",timezone = "GMT-05:00")
@@ -41,11 +38,11 @@ public class Movement extends Audit
     {
         if(this.getTypeMovement().equals(TypeMovement.DEPOSITS))
         {
-            return (-this.getComissionMont() + this.getMont());
+            return (-getComissionMont() + getMont());
         }
         else
         {
-            return (-this.getComissionMont() - this.getMont());
+            return (-getComissionMont() - getMont());
         }
     }
 
