@@ -92,7 +92,7 @@ public class MovementImpl implements MovementService
     }
 
     @Override
-    public Mono<Integer> CountMovements(Movement mov) {
+    public Mono<Integer> CountMovementsPerMonth(Movement mov) {
         return findByIdClient(mov.getClientId())
                 .flatMap(movements -> {
                     int count = 0;
@@ -114,4 +114,28 @@ public class MovementImpl implements MovementService
                     return Mono.just(count);
                 });
     }
+
+    @Override
+    public Mono<Integer> CountMovements(Movement mov) {
+        return findByIdClient(mov.getClientId())
+                .flatMap(movements -> {
+                    int count = 0;
+
+                    LocalDateTime dateNow = LocalDateTime.now();
+
+                    for (Movement movement:movements)
+                    {
+                        LocalDateTime dateCreated = movement.getCreated();
+
+                        if (movement.getTypePasiveMovement() == mov.getTypePasiveMovement())
+                        {
+                            count++;
+                        }
+                    }
+
+                    return Mono.just(count);
+                });
+    }
+
+
 }

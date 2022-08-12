@@ -14,8 +14,9 @@ public interface MovementService
     Mono<Movement> Update(String id, Movement mov);
     Mono<Object> Delete(String id);
     Mono<Float> GetBalance(String id);
-
+    Mono<Integer> CountMovementsPerMonth(Movement mov);
     Mono<Integer> CountMovements(Movement mov);
+
 
 
 }

@@ -31,6 +31,8 @@ public class Movement extends Audit
     private TypePasiveMovement typePasiveMovement;
     private float mont;
     private float comissionMont;
+    private float comissionMaxMont;
+
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy",timezone = "GMT-05:00")
     private LocalDateTime created;

@@ -68,56 +68,7 @@ public class MovementRestController
 
         MovementConditions movCon = new MovementConditions();
 
-        //Obtener monto de pasivo
-        return  parameterService.getMont(mov.getPasiveId())
-                .flatMap(responseMont ->
-                {
-                    if(responseMont.getData() != null)
-                    {
-                        log.info(responseMont.getData().toString());
-                        //Guarda monto de pasivo
-                        movCon.setPasiveMont(responseMont.getData().getMont());
-                        return parameterService.getTypeParams(mov.getPasiveId())
-                                .flatMap(parameters -> {
-                                    log.info(parameters.toString());
-                                    //Condicionales
-                                    movCon.setParameters(parameters.getData());
-                                    movCon.setMov(mov);
-
-                                    if(movCon.HaveEnoughCredit())
-                                    {
-                                        log.info("Pasive's client have credit");
-                                        movCon.init();
-                                        return parameterService.setMont(mov.getPasiveId(),movCon.getMont())
-                                                .flatMap(responseMont1 -> {
-                                                    log.info(responseMont1.toString());
-                                                    if(responseMont1.getStatus().equalsIgnoreCase("Ok"))
-                                                        //Obtener movimientos maximos del mes
-                                                        return movementService.CountMovements(mov).flatMap(currentMovement -> {
-                                                            //Valida condicionales
-                                                            if(movCon.CheckContinueTransaction())
-                                                                return movementService.Create(mov)
-                                                                        .map(movement -> ResponseHandler.response("Done", HttpStatus.OK, movement)                )
-                                                                        .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
-                                                                        .doFinally(fin -> log.info("[END] create Movement"));
-                                                            else
-                                                                return Mono.just(ResponseHandler.response("You can't generate more movement today", HttpStatus.BAD_REQUEST, null));
-                                                        });
-                                                    else
-                                                        return Mono.just(ResponseHandler.response("Error", HttpStatus.BAD_REQUEST, null));
-                                                });
-                                    }
-                                    else
-                                        return Mono.just(ResponseHandler.response("You don't have enough credit", HttpStatus.BAD_REQUEST, null));
-
-                                })
-                                .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
-                    }
-                    else
-                        return Mono.just(ResponseHandler.response("Not found", HttpStatus.BAD_REQUEST, null));
-
-                })
-                .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
+        return MovementRestControllerCreateHelper.CreateMovementSequence(movCon,mov,movementService,log,parameterService);
     }
 
     @PutMapping("/{id}")
@@ -125,12 +76,10 @@ public class MovementRestController
     {
         log.info("[INI] update Movement");
         log.info(id);
-        return movementService.Update(id,mov)
-                .flatMap(movement -> Mono.just(ResponseHandler.response("Done", HttpStatus.NO_CONTENT, movement)))
-                .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
-                .switchIfEmpty(Mono.just(ResponseHandler.response("Error", HttpStatus.NO_CONTENT, null)))
-                .doFinally(fin -> log.info("[END] update Movement"));
 
+        MovementConditions movCon = new MovementConditions();
+
+        return MovementRestControllerUpdateHelper.UpdateMovementSequence(movCon,mov,movementService,log,parameterService);
     }
 
     @DeleteMapping("/{id}")

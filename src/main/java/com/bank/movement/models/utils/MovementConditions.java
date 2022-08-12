@@ -3,24 +3,26 @@ package com.bank.movement.models.utils;
 import com.bank.movement.models.documents.Movement;
 import com.bank.movement.models.documents.Parameter;
 import com.bank.movement.models.emus.TypePasiveMovement;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.Max;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Getter
-@Setter
+@Data
 public class MovementConditions
 {
     private List<Parameter> parameters;
     private Movement mov;
-    private int currentMovement;
-    private float pasiveMont;
+    private int movementPerMonth;
+    private float currentPasiveMont;
 
     private boolean differentDates;
-    private int maxMovement;
+    private int movementPerAccount;
+    private int maxMovementMonth;
     private boolean settedParamType;
 
     private Mont mont;
@@ -28,18 +30,22 @@ public class MovementConditions
     public void init()
     {
         ComissionPercentage();
-        differentDates = CheckTransanctionDay();
-        maxMovement = MaxMovements();
-        settedParamType = SetParameterPasiveMovement();
+        setDifferentDates(CheckTransanctionDay());
+        setMaxMovementMonth(MaxMovements());
+        setSettedParamType(SetParameterPasiveMovement());
 
-        this.mont = new Mont();
-        mont.setMont(mov.getCurrentMont());
-        mont.setIdPasive(mov.getPasiveId());
+        if(NeedToPayCommission())
+            ComissionPercentageMaxMovement();
+
+
+        setMont(new Mont());
+        getMont().setMont(mov.getCurrentMont());
+        getMont().setIdPasive(mov.getPasiveId());
     }
 
     private void ComissionPercentage()
     {
-        this.parameters.stream()
+        getParameters().stream()
                 .filter(parameter -> "1".equals(parameter.getValue()))
                 .findFirst()
                 .ifPresent(parameter ->
@@ -49,11 +55,11 @@ public class MovementConditions
                     try
                     {
                         float percentage = Float.parseFloat(argument);
-                        this.mov.setComissionMont(this.mov.getMont()*percentage);
+                        getMov().setComissionMont(getMov().getMont()*percentage);
                     }
                     catch (NumberFormatException e)
                     {
-                        this.mov.setComissionMont(0);
+                        getMov().setComissionMont(0);
                     }
                 });
     }
@@ -61,7 +67,7 @@ public class MovementConditions
     private boolean CheckTransanctionDay()
     {
 
-        Optional<Parameter> param = this.parameters.stream()
+        Optional<Parameter> param = getParameters().stream()
                 .filter(parameter -> "2".equals(parameter.getValue()))
                 .findFirst();
 
@@ -85,7 +91,7 @@ public class MovementConditions
 
     private int MaxMovements()
     {
-        Optional<Parameter> param = this.parameters.stream()
+        Optional<Parameter> param = getParameters().stream()
                 .filter(parameter -> "3".equals(parameter.getValue()))
                 .findFirst();
 
@@ -104,11 +110,61 @@ public class MovementConditions
         }
     }
 
+    private void ComissionPercentageMaxMovement()
+    {
+        getParameters().stream()
+                .filter(parameter -> "4".equals(parameter.getValue()))
+                .findFirst()
+                .ifPresent(parameter ->
+                {
+                    String argument = parameter.getArgument();
+
+                    try
+                    {
+                        float percentage = Float.parseFloat(argument);
+                        getMov().setComissionMaxMont(getMov().getMont()*percentage);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        this.mov.setComissionMaxMont(0);
+                    }
+                });
+    }
+
+    private boolean NeedToPayCommission()
+    {
+        Optional<Parameter> param = getParameters().stream()
+                .filter(parameter -> "5".equals(parameter.getValue()))
+                .findFirst();
+
+        if(param.isPresent())
+        {
+            String argument = param.get().getArgument();
+
+            try
+            {
+                float maxMovPerAccount = Integer.parseInt(argument);
+
+                return (maxMovPerAccount<movementPerAccount);
+
+            }
+            catch (NumberFormatException e)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return true;
+        }
+
+    }
+
     private boolean SetParameterPasiveMovement()
     {
         if(this.parameters.size()>=1)
         {
-            this.mov.setTypePasiveMovement(TypePasiveMovement.fromInteger(this.parameters.get(0).getCode()));
+            getMov().setTypePasiveMovement(TypePasiveMovement.fromInteger(getParameters().get(0).getCode()));
             return true;
         }
         else
@@ -119,12 +175,23 @@ public class MovementConditions
 
     public boolean CheckContinueTransaction()
     {
-        return (settedParamType &&(differentDates && currentMovement < maxMovement));
+        return (isSettedParamType() &&(isDifferentDates() && getMovementPerMonth() < getMaxMovementMonth()));
     }
+
 
     public boolean HaveEnoughCredit()
     {
-        return (getPasiveMont() - getMov().getCurrentMont()) >0;
+        return (getCurrentPasiveMont() - (getMov().getCurrentMont() - getMov().getComissionMaxMont())) >0;
     }
+
+    public boolean canAffortUpdateMonth(Movement newMov, Movement oldMov)
+    {
+        float newMont = (oldMov.getCurrentMont() - newMov.getCurrentMont()) - getCurrentPasiveMont();
+
+        getMont().setMont(newMont);
+
+        return (newMont) > 0;
+    }
+
 
 }
