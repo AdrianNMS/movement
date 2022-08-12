@@ -21,6 +21,8 @@ public class Movement extends Audit
     private String pasiveId;
     @NotNull(message = "clientId must not be null")
     private String clientId;
+    @NotNull(message = "pasiveReceiverId must not be null")
+    private String pasiveReceiverId;
     @NotNull(message = "typeMovement must not be null")
     private TypeMovement typeMovement;
     private TypePasiveMovement typePasiveMovement;

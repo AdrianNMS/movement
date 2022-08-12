@@ -14,13 +14,22 @@ public class MovementRestControllerCreateHelper
 {
     public static Mono<ResponseEntity<Object>> SaveMovement(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
     {
-        if(movCon.CheckContinueTransaction())
-            return movementService.Create(mov)
-                    .map(movement -> ResponseHandler.response("Done", HttpStatus.OK, movement)                )
-                    .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
-                    .doFinally(fin -> log.info("[END] create Movement"));
-        else
-            return Mono.just(ResponseHandler.response("You can't generate more movement today", HttpStatus.BAD_REQUEST, null));
+        return movementService.Create(mov)
+                .map(movement -> ResponseHandler.response("Done", HttpStatus.OK, movement)                )
+                .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
+                .doFinally(fin -> log.info("[END] create Movement"));
+    }
+
+    public static Mono<ResponseEntity<Object>> UpdateMontReceiver(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
+    {
+        return parameterService.setMont(mov.getPasiveReceiverId(),movCon.getMont())
+                .flatMap(responseMont1 -> {
+                    log.info(responseMont1.toString());
+                    if(responseMont1.getStatus().equalsIgnoreCase("Ok"))
+                        return SaveMovement(movCon,mov, movementService,log,parameterService);
+                    else
+                        return Mono.just(ResponseHandler.response("Error", HttpStatus.BAD_REQUEST, null));
+                }).switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
 
     public static Mono<ResponseEntity<Object>> UpdateMont(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
@@ -29,7 +38,7 @@ public class MovementRestControllerCreateHelper
                 .flatMap(responseMont1 -> {
                     log.info(responseMont1.toString());
                     if(responseMont1.getStatus().equalsIgnoreCase("Ok"))
-                        return SaveMovement(movCon,mov, movementService,log,parameterService);
+                        return UpdateMontReceiver(movCon,mov, movementService,log,parameterService);
                     else
                         return Mono.just(ResponseHandler.response("Error", HttpStatus.BAD_REQUEST, null));
                 }).switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
@@ -40,7 +49,11 @@ public class MovementRestControllerCreateHelper
         //Obtener movimientos maximos del mes
         return movementService.CountMovementsPerMonth(mov).flatMap(currentMovement -> {
             //Valida condicionales
-            return UpdateMont(movCon,mov, movementService,log,parameterService);
+            if(movCon.CheckContinueTransaction())
+                return UpdateMont(movCon,mov, movementService,log,parameterService);
+            else
+                return Mono.just(ResponseHandler.response("You can't generate more movement today", HttpStatus.BAD_REQUEST, null));
+
         }).switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
 

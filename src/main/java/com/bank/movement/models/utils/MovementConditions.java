@@ -4,10 +4,7 @@ import com.bank.movement.models.documents.Movement;
 import com.bank.movement.models.documents.Parameter;
 import com.bank.movement.models.emus.TypePasiveMovement;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-import javax.validation.constraints.Max;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +37,6 @@ public class MovementConditions
 
         setMont(new Mont());
         getMont().setMont(mov.getCurrentMont());
-        getMont().setIdPasive(mov.getPasiveId());
     }
 
     private void ComissionPercentage()
@@ -59,7 +55,7 @@ public class MovementConditions
                     }
                     catch (NumberFormatException e)
                     {
-                        getMov().setComissionMont(0);
+                        getMov().setComissionMont(0f);
                     }
                 });
     }
@@ -126,7 +122,7 @@ public class MovementConditions
                     }
                     catch (NumberFormatException e)
                     {
-                        this.mov.setComissionMaxMont(0);
+                        getMov().setComissionMaxMont(0f);
                     }
                 });
     }
