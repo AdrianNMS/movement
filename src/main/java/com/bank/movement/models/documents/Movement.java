@@ -4,7 +4,10 @@ import com.bank.movement.models.emus.TypeMovement;
 import com.bank.movement.models.emus.TypePasiveMovement;
 import com.bank.movement.models.utils.Audit;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Value;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import javax.validation.constraints.Min;
@@ -29,8 +32,9 @@ public class Movement extends Audit
     @NotNull(message = "mont must not be null")
     @Min(1)
     private Float mont;
-    private Float comissionMont;
-    private Float comissionMaxMont;
+
+    private Float comissionMont=0f;
+    private Float comissionMaxMont=0f;
 
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy",timezone = "GMT-05:00")
@@ -38,14 +42,7 @@ public class Movement extends Audit
 
     public float getCurrentMont()
     {
-        if(this.getTypeMovement().equals(TypeMovement.DEPOSITS))
-        {
-            return (-getComissionMont() + getMont());
-        }
-        else
-        {
-            return (-getComissionMont() - getMont());
-        }
+        return -(getMont() + (getComissionMont() + getComissionMaxMont()));
     }
 
 }

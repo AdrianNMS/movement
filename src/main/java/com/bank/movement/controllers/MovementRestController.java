@@ -67,8 +67,9 @@ public class MovementRestController
         mov.setCreated(LocalDateTime.now());
 
         MovementConditions movCon = new MovementConditions();
+        movCon.setMov(mov);
 
-        return MovementRestControllerCreateHelper.CreateMovementSequence(movCon,mov, movementService,log,parameterService);
+        return MovementRestControllerCreateHelper.CreateMovementSequence(movCon, movementService,log,parameterService);
     }
 
     @PutMapping("/{id}")
@@ -78,8 +79,9 @@ public class MovementRestController
         log.info(id);
 
         MovementConditions movCon = new MovementConditions();
+        movCon.setMov(mov);
 
-        return MovementRestControllerUpdateHelper.UpdateMovementSequence(movCon,mov, movementService,log,parameterService);
+        return MovementRestControllerUpdateHelper.UpdateMovementSequence(movCon, movementService,log,parameterService);
     }
 
     @DeleteMapping("/{id}")

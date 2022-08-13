@@ -24,16 +24,14 @@ public class MovementConditions
 
     private Mont mont;
 
-    public void init()
-    {
+    public void init() {
         ComissionPercentage();
         setDifferentDates(CheckTransanctionDay());
         setMaxMovementMonth(MaxMovements());
         setSettedParamType(SetParameterPasiveMovement());
 
         if(NeedToPayCommission())
-            ComissionPercentageMaxMovement();
-
+          ComissionPercentageMaxMovement();
 
         setMont(new Mont());
         getMont().setMont(mov.getCurrentMont());
@@ -53,9 +51,9 @@ public class MovementConditions
                         float percentage = Float.parseFloat(argument);
                         getMov().setComissionMont(getMov().getMont()*percentage);
                     }
-                    catch (NumberFormatException e)
+                    catch (NumberFormatException ignored)
                     {
-                        getMov().setComissionMont(0f);
+
                     }
                 });
     }
@@ -76,13 +74,12 @@ public class MovementConditions
                 int day = Integer.parseInt(argument);
 
                 return (LocalDateTime.now().getDayOfMonth() == day);
-            } else
+            }
+            else
                 return true;
         }
         else
-        {
             return false;
-        }
     }
 
     private int MaxMovements()
@@ -98,39 +95,16 @@ public class MovementConditions
             if(!argument.equals("false"))
                 return Integer.parseInt(argument);
             else
-                return 99999999;
+                return Integer.MAX_VALUE;
         }
         else
-        {
             return 0;
-        }
-    }
-
-    private void ComissionPercentageMaxMovement()
-    {
-        getParameters().stream()
-                .filter(parameter -> "4".equals(parameter.getValue()))
-                .findFirst()
-                .ifPresent(parameter ->
-                {
-                    String argument = parameter.getArgument();
-
-                    try
-                    {
-                        float percentage = Float.parseFloat(argument);
-                        getMov().setComissionMaxMont(getMov().getMont()*percentage);
-                    }
-                    catch (NumberFormatException e)
-                    {
-                        getMov().setComissionMaxMont(0f);
-                    }
-                });
     }
 
     private boolean NeedToPayCommission()
     {
         Optional<Parameter> param = getParameters().stream()
-                .filter(parameter -> "5".equals(parameter.getValue()))
+                .filter(parameter -> "4".equals(parameter.getValue()))
                 .findFirst();
 
         if(param.isPresent())
@@ -144,16 +118,33 @@ public class MovementConditions
                 return (maxMovPerAccount<movementPerAccount);
 
             }
-            catch (NumberFormatException e)
+            catch (NumberFormatException ignored)
             {
                 return true;
             }
         }
         else
-        {
             return true;
-        }
+    }
 
+    private void ComissionPercentageMaxMovement()
+    {
+        getParameters().stream()
+                .filter(parameter -> "5".equals(parameter.getValue()))
+                .findFirst()
+                .ifPresent(parameter ->
+                {
+                    String argument = parameter.getArgument();
+
+                    try
+                    {
+                        float percentage = Float.parseFloat(argument);
+                        getMov().setComissionMaxMont(getMov().getMont()*percentage);
+                    }
+                    catch (NumberFormatException ignored)
+                    {
+                    }
+                });
     }
 
     private boolean SetParameterPasiveMovement()
@@ -164,9 +155,7 @@ public class MovementConditions
             return true;
         }
         else
-        {
             return false;
-        }
     }
 
     public boolean CheckContinueTransaction()
@@ -187,6 +176,13 @@ public class MovementConditions
         getMont().setMont(newMont);
 
         return (newMont) > 0;
+    }
+
+    public Mont getMontReceiver()
+    {
+        Mont m = new Mont();
+        m.setMont(mov.getMont());
+        return m;
     }
 
 

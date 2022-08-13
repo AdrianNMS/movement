@@ -1,7 +1,7 @@
 package com.bank.movement.controllers;
 
 import com.bank.movement.handler.ResponseHandler;
-import com.bank.movement.models.documents.Movement;
+import com.bank.movement.models.emus.TypeMovement;
 import com.bank.movement.models.utils.MovementConditions;
 import com.bank.movement.services.IMovementService;
 import com.bank.movement.services.IParameterService;
@@ -12,64 +12,74 @@ import reactor.core.publisher.Mono;
 
 public class MovementRestControllerUpdateHelper
 {
-    public static Mono<ResponseEntity<Object>> UpdateMovement(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
+    public static Mono<ResponseEntity<Object>> UpdateMovement(MovementConditions movCon, IMovementService movementService, Logger log, IParameterService parameterService)
     {
-        return movementService.Update(mov.getId(),mov)
+        return movementService.Update(movCon.getMov().getId(),movCon.getMov())
                 .flatMap(movement -> Mono.just(ResponseHandler.response("Done", HttpStatus.NO_CONTENT, movement)))
                 .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Error", HttpStatus.NO_CONTENT, null)))
                 .doFinally(fin -> log.info("[END] update Movement"));
     }
 
-    public static Mono<ResponseEntity<Object>> UpdateMont(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
+    public static Mono<ResponseEntity<Object>> UpdateMontReceiver(MovementConditions movCon, IMovementService movementService, Logger log, IParameterService parameterService)
     {
-        return parameterService.setMont(mov.getPasiveId(),movCon.getMont())
+        return parameterService.setMont(movCon.getMov().getPasiveReceiverId(),movCon.getMontReceiver())
                 .flatMap(responseMont1 -> {
                     log.info(responseMont1.toString());
                     if(responseMont1.getStatus().equalsIgnoreCase("Ok"))
-                        return UpdateMovement(movCon,mov, movementService,log,parameterService);
+                        return UpdateMovement(movCon, movementService,log,parameterService);
                     else
                         return Mono.just(ResponseHandler.response("Error", HttpStatus.BAD_REQUEST, null));
                 }).switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
 
-    public static Mono<ResponseEntity<Object>> CheckOldMont(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
+    public static Mono<ResponseEntity<Object>> UpdateMont(MovementConditions movCon, IMovementService movementService, Logger log, IParameterService parameterService)
     {
-        return movementService.Find(mov.getId()).flatMap(movement ->
-                {
+        return parameterService.setMont(movCon.getMov().getPasiveId(),movCon.getMont())
+                .flatMap(responseMont1 -> {
+                    log.info(responseMont1.toString());
+                    if(responseMont1.getStatus().equalsIgnoreCase("Ok"))
+                        if(movCon.getMov().getTypeMovement() == TypeMovement.DEPOSITS)
+                            return UpdateMontReceiver(movCon, movementService,log,parameterService);
+                        else
+                            return UpdateMovement(movCon, movementService,log,parameterService);
+                    else
+                        return Mono.just(ResponseHandler.response("Error", HttpStatus.BAD_REQUEST, null));
+                }).switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
+    }
 
+    public static Mono<ResponseEntity<Object>> CheckOldMont(MovementConditions movCon, IMovementService movementService, Logger log, IParameterService parameterService)
+    {
+        return movementService.Find(movCon.getMov().getId()).flatMap(movement ->
+                {
                     if(movement!=null)
-                        if(movCon.canAffortUpdateMonth(mov,movement))
-                            return UpdateMont(movCon,mov, movementService,log,parameterService);
+                        if(movCon.canAffortUpdateMonth(movCon.getMov(),movement))
+                            return UpdateMont(movCon, movementService,log,parameterService);
                         else
                             return Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null));
                     else
                         return Mono.just(ResponseHandler.response("Not Found", HttpStatus.NOT_FOUND, null));
-
-
-
                 }
         ).switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
 
-    public static Mono<ResponseEntity<Object>> ObtainListParameters(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
+    public static Mono<ResponseEntity<Object>> ObtainListParameters(MovementConditions movCon,  IMovementService movementService, Logger log, IParameterService parameterService)
     {
-        return parameterService.getTypeParams(mov.getPasiveId())
+        return parameterService.getTypeParams(movCon.getMov().getPasiveId())
                 .flatMap(parameters -> {
                     log.info(parameters.toString());
                     //Condicionales
                     movCon.setParameters(parameters.getData());
-                    movCon.setMov(mov);
 
-                    return CheckOldMont(movCon,mov, movementService,log,parameterService);
+                    return CheckOldMont(movCon, movementService,log,parameterService);
                 })
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
 
-    public static Mono<ResponseEntity<Object>> ObtainMont(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
+    public static Mono<ResponseEntity<Object>> ObtainMont(MovementConditions movCon, IMovementService movementService, Logger log, IParameterService parameterService)
     {
         //Obtener monto de pasivo
-        return  parameterService.getMont(mov.getPasiveId())
+        return  parameterService.getMont(movCon.getMov().getPasiveId())
                 .flatMap(responseMont ->
                 {
                     if(responseMont.getData() != null)
@@ -77,7 +87,7 @@ public class MovementRestControllerUpdateHelper
                         log.info(responseMont.getData().toString());
                         //Guarda monto de pasivo
                         movCon.setCurrentPasiveMont(responseMont.getData().getMont());
-                        return ObtainListParameters(movCon,mov, movementService,log,parameterService);
+                        return ObtainListParameters(movCon, movementService,log,parameterService);
                     }
                     else
                         return Mono.just(ResponseHandler.response("Not found", HttpStatus.BAD_REQUEST, null));
@@ -86,8 +96,8 @@ public class MovementRestControllerUpdateHelper
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
 
-    public static Mono<ResponseEntity<Object>> UpdateMovementSequence(MovementConditions movCon, Movement mov, IMovementService movementService, Logger log, IParameterService parameterService)
+    public static Mono<ResponseEntity<Object>> UpdateMovementSequence(MovementConditions movCon,  IMovementService movementService, Logger log, IParameterService parameterService)
     {
-        return ObtainMont(movCon,mov, movementService,log,parameterService);
+        return ObtainMont(movCon, movementService,log,parameterService);
     }
 }
