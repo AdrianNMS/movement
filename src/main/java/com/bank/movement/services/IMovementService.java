@@ -1,8 +1,10 @@
 package com.bank.movement.services;
 
+import com.bank.movement.models.documents.ComissionReport;
 import com.bank.movement.models.documents.Movement;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
 import java.util.List;
 
 public interface IMovementService
@@ -17,6 +19,8 @@ public interface IMovementService
     Mono<Float> GetBalance(String id);
     Mono<Integer> CountMovementsPerMonth(Movement mov);
     Mono<Integer> CountMovements(Movement mov);
+
+    Mono<List<ComissionReport>> ComissionReportBetween(String min, String max);
 
 
 

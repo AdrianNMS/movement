@@ -23,9 +23,9 @@ public enum TypePasiveMovement {
             case 1001:
                 return ACCOUNT;
             case 1002:
-                return SAVINGVIP;
-            case 1003:
                 return FIXEDTERM;
+            case 1003:
+                return SAVINGVIP;
             case 1004:
                 return ACCOUNTPYME;
         }

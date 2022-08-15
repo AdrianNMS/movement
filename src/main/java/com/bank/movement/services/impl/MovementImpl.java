@@ -1,14 +1,20 @@
 package com.bank.movement.services.impl;
 
 import com.bank.movement.models.dao.IMovementDao;
+import com.bank.movement.models.documents.ComissionReport;
 import com.bank.movement.models.documents.Movement;
+import com.bank.movement.models.utils.Utils;
 import com.bank.movement.services.IMovementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MovementImpl implements IMovementService
@@ -34,7 +40,7 @@ public class MovementImpl implements IMovementService
         LocalDateTime dateNow = LocalDateTime.now();
         return dao.findAll()
                 .filter(movement ->
-                        movement.getCreated().getDayOfMonth() == dateNow.getDayOfMonth()
+                        movement.getCreated().getMonthValue() == dateNow.getMonthValue()
                                 && movement.getCreated().getYear() == dateNow.getYear() &&
                         (movement.getPasiveId().equals(id) || movement.getPasiveReceiverId().equals(id))
                 ).collectList();
@@ -111,6 +117,27 @@ public class MovementImpl implements IMovementService
                             .filter(movement -> movement.getTypePasiveMovement() == mov.getTypePasiveMovement())
                             .count())
                 );
+    }
+
+    @Override
+    public Mono<List<ComissionReport>> ComissionReportBetween(String min, String max)
+    {
+        LocalDateTime localDateTimeMin = Utils.parseLocalDate(min);
+
+        LocalDateTime localDateTimeMax = Utils.parseLocalDate(max);
+
+        return FindAll().flatMap(movements ->
+                Mono.just(movements.stream().filter(movement ->
+                        Utils.BetweenDates(movement.getCreated(), localDateTimeMin, localDateTimeMax)
+                ).map(movement -> ComissionReport.
+                        builder()
+                        .idEmisor(movement.getPasiveId())
+                        .idReceptor(movement.getPasiveReceiverId())
+                        .Mont(movement.getMont())
+                        .MontComission(movement.getComissionMont()+movement.getComissionMaxMont())
+                        .build()
+                ).collect(Collectors.toList()))
+        );
     }
 
 

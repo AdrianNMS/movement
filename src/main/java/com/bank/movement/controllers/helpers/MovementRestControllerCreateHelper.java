@@ -1,4 +1,4 @@
-package com.bank.movement.controllers;
+package com.bank.movement.controllers.helpers;
 
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.emus.TypeMovement;
@@ -36,7 +36,7 @@ public class MovementRestControllerCreateHelper
     {
         return pasiveService.setMont(movCon.getMov().getPasiveId(),movCon.getMont())
                 .flatMap(responseMont1 -> {
-                    log.info(responseMont1.toString());
+
                     if(responseMont1.getStatus().equalsIgnoreCase("Ok"))
                         if(movCon.getMov().getTypeMovement() == TypeMovement.DEPOSITS)
                             return UpdateMontReceiver(movCon, movementService,log,pasiveService);
@@ -51,6 +51,8 @@ public class MovementRestControllerCreateHelper
     {
         //Obtener movimientos maximos del mes
         return movementService.CountMovementsPerMonth(movCon.getMov()).flatMap(currentMovement -> {
+            movCon.setMovementPerMonth(currentMovement);
+
             //Valida condicionales
             if(movCon.CheckContinueTransaction())
                 return UpdateMont(movCon, movementService,log,pasiveService);

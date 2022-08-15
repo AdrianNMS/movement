@@ -1,5 +1,7 @@
 package com.bank.movement.controllers;
 
+import com.bank.movement.controllers.helpers.MovementRestControllerCreateHelper;
+import com.bank.movement.controllers.helpers.MovementRestControllerUpdateHelper;
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.documents.Movement;
 import com.bank.movement.models.utils.MovementConditions;
@@ -10,11 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api/movement")
@@ -109,6 +113,18 @@ public class MovementRestController
                 .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)))
                 .doFinally(fin -> log.info("[END] getBalance Movement"));
+    }
+
+    @GetMapping("/report")
+    public Mono<ResponseEntity<Object>> reports(@Validated @RequestParam("max") String max, @Validated @RequestParam("min") String min)
+    {
+
+        log.info("[INI] Reports Movement");
+        return movementService.ComissionReportBetween(min,max)
+                .map(comission -> ResponseHandler.response("Done", HttpStatus.OK, comission))
+                .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
+                .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)))
+                .doFinally(fin -> log.info("[END] Reports Movement"));
     }
 
 }

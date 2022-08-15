@@ -1,4 +1,4 @@
-package com.bank.movement.controllers;
+package com.bank.movement.controllers.helpers;
 
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.emus.TypeMovement;
