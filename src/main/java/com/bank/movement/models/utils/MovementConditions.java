@@ -6,13 +6,11 @@ import com.bank.movement.models.emus.TypePasiveMovement;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Data
 public class MovementConditions
 {
-    private List<Parameter> parameters;
+    private Parameter parameter;
     private Movement mov;
     private int movementPerMonth;
     private float currentPasiveMont;
@@ -20,15 +18,14 @@ public class MovementConditions
     private boolean differentDates;
     private int movementPerAccount;
     private int maxMovementMonth;
-    private boolean settedParamType;
 
     private Mont mont;
 
     public void init() {
         ComissionPercentage();
         setDifferentDates(CheckTransanctionDay());
-        setMaxMovementMonth(MaxMovements());
-        setSettedParamType(SetParameterPasiveMovement());
+        setMaxMovementMonth(MaxMovementsPerMont());
+        SetParameterPasiveMovement();
 
         if(NeedToPayCommission())
           ComissionPercentageMaxMovement();
@@ -39,128 +36,56 @@ public class MovementConditions
 
     private void ComissionPercentage()
     {
-        getParameters().stream()
-                .filter(parameter -> "1".equals(parameter.getValue()))
-                .findFirst()
-                .ifPresent(parameter ->
-                {
-                    String argument = parameter.getArgument();
-
-                    try
-                    {
-                        float percentage = Float.parseFloat(argument);
-                        getMov().setComissionMont(getMov().getMont()*percentage);
-                    }
-                    catch (NumberFormatException ignored)
-                    {
-
-                    }
-                });
+        float percentage = getParameter().getComissionPercentage();
+        getMov().setComissionMont(getMov().getMont()*percentage);
     }
 
     private boolean CheckTransanctionDay()
     {
+        String argument = getParameter().getTransactionDay();
 
-        Optional<Parameter> param = getParameters().stream()
-                .filter(parameter -> "2".equals(parameter.getValue()))
-                .findFirst();
-
-        if(param.isPresent())
+        if (!argument.equals("false"))
         {
-            String argument = param.get().getArgument();
+            int day = Integer.parseInt(argument);
 
-            if (!argument.equals("false"))
-            {
-                int day = Integer.parseInt(argument);
-
-                return (LocalDateTime.now().getDayOfMonth() == day);
-            }
-            else
-                return true;
+            return (LocalDateTime.now().getDayOfMonth() == day);
         }
         else
-            return false;
+            return true;
     }
 
-    private int MaxMovements()
+    private int MaxMovementsPerMont()
     {
-        Optional<Parameter> param = getParameters().stream()
-                .filter(parameter -> "3".equals(parameter.getValue()))
-                .findFirst();
 
-        if(param.isPresent())
-        {
-            String argument = param.get().getArgument();
+        String argument = getParameter().getMaxMovementPerMonth();
 
-            if(!argument.equals("false"))
-                return Integer.parseInt(argument);
-            else
-                return Integer.MAX_VALUE;
-        }
+        if(!argument.equals("INFINITY"))
+            return Integer.parseInt(argument);
         else
-            return 0;
+            return Integer.MAX_VALUE;
     }
 
     private boolean NeedToPayCommission()
     {
-        Optional<Parameter> param = getParameters().stream()
-                .filter(parameter -> "4".equals(parameter.getValue()))
-                .findFirst();
-
-        if(param.isPresent())
-        {
-            String argument = param.get().getArgument();
-
-            try
-            {
-                float maxMovPerAccount = Integer.parseInt(argument);
-
-                return (maxMovPerAccount<movementPerAccount);
-
-            }
-            catch (NumberFormatException ignored)
-            {
-                return true;
-            }
-        }
-        else
-            return true;
+        return (parameter.getMaxMovement()<movementPerAccount);
     }
 
     private void ComissionPercentageMaxMovement()
     {
-        getParameters().stream()
-                .filter(parameter -> "5".equals(parameter.getValue()))
-                .findFirst()
-                .ifPresent(parameter ->
-                {
-                    String argument = parameter.getArgument();
 
-                    try
-                    {
-                        float percentage = Float.parseFloat(argument);
-                        getMov().setComissionMaxMont(getMov().getMont()*percentage);
-                    }
-                    catch (NumberFormatException ignored)
-                    {
-                    }
-                });
+        float percentage = parameter.getPercentageMaxMovement();
+        getMov().setComissionMaxMont(getMov().getMont()*percentage);
+
     }
 
-    private boolean SetParameterPasiveMovement()
+    private void SetParameterPasiveMovement()
     {
-        if(this.parameters.size()>=1)
-        {
-            getMov().setTypePasiveMovement(TypePasiveMovement.fromInteger(getParameters().get(0).getCode()));
-            return true;
-        }
-        else
-            return false;
+        getMov().setTypePasiveMovement(TypePasiveMovement.fromInteger(getParameter().getCode()));
     }
 
     public boolean CheckContinueTransaction()
     {
-        return (isSettedParamType() &&(isDifferentDates() && getMovementPerMonth() < getMaxMovementMonth()));
+        return (isDifferentDates() && getMovementPerMonth() < getMaxMovementMonth());
     }
 
 

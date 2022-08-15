@@ -4,12 +4,10 @@ import com.bank.movement.models.emus.TypeMovement;
 import com.bank.movement.models.emus.TypePasiveMovement;
 import com.bank.movement.models.utils.Audit;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
 import lombok.Data;
-import lombok.Value;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;

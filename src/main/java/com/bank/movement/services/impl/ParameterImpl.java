@@ -3,7 +3,7 @@ package com.bank.movement.services.impl;
 import com.bank.movement.models.utils.Mont;
 import com.bank.movement.models.utils.ResponseMont;
 import com.bank.movement.models.utils.ResponseParameter;
-import com.bank.movement.services.IParameterService;
+import com.bank.movement.services.IPasiveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 
 @Service
-public class ParameterImpl implements IParameterService {
+public class ParameterImpl implements IPasiveService {
 
     @Autowired
     WebClient webClient;

@@ -8,7 +8,8 @@ import java.util.List;
 public interface IMovementService
 {
     Mono<List<Movement>> FindAll();
-    Mono<List<Movement>> findByIdClient(String idClient);
+    Mono<List<Movement>> FindByIdPasive(String id);
+    Mono<List<Movement>> FindByIdPasivePerMonth(String id);
     Mono<Movement> Find(String id);
     Mono<Movement> Create(Movement mov);
     Mono<Movement> Update(String id, Movement mov);

@@ -22,10 +22,21 @@ public class MovementImpl implements IMovementService
     }
 
     @Override
-    public Mono<List<Movement>> findByIdClient(String idClient) {
+    public Mono<List<Movement>> FindByIdPasive(String id) {
         return dao.findAll()
                 .filter(movement ->
-                        movement.getClientId().equals(idClient)
+                        (movement.getPasiveId().equals(id) || movement.getPasiveReceiverId().equals(id))
+                ).collectList();
+    }
+
+    @Override
+    public Mono<List<Movement>> FindByIdPasivePerMonth(String id) {
+        LocalDateTime dateNow = LocalDateTime.now();
+        return dao.findAll()
+                .filter(movement ->
+                        movement.getCreated().getDayOfMonth() == dateNow.getDayOfMonth()
+                                && movement.getCreated().getYear() == dateNow.getYear() &&
+                        (movement.getPasiveId().equals(id) || movement.getPasiveReceiverId().equals(id))
                 ).collectList();
     }
 
@@ -58,7 +69,7 @@ public class MovementImpl implements IMovementService
     public Mono<Object> Delete(String id) {
         return dao.existsById(id).flatMap(check -> {
             if (check)
-                return dao.deleteById(id);
+                return dao.deleteById(id).then(Mono.just(true));
             else
                 return Mono.empty();
         });
@@ -67,18 +78,19 @@ public class MovementImpl implements IMovementService
     @Override
     public Mono<Float> GetBalance(String id) {
 
-        return dao.findAll()
-                .collectList()
+        return FindByIdPasivePerMonth(id)
                 .flatMap(movements ->
-                            Mono.just(movements.stream()
-                                    .map(Movement::getCurrentMont)
-                                    .reduce(0f, Float::sum))
+                            Mono.just((float)movements.stream()
+                                    .mapToDouble(Movement::getMont)
+                                    .average().getAsDouble())
                 );
     }
 
+
+
     @Override
     public Mono<Integer> CountMovementsPerMonth(Movement mov) {
-        return findByIdClient(mov.getClientId())
+        return FindByIdPasive(mov.getPasiveId())
                 .flatMap(movements -> {
                     LocalDateTime dateNow = LocalDateTime.now();
                     return Mono.just((int)movements.stream()
@@ -93,7 +105,7 @@ public class MovementImpl implements IMovementService
 
     @Override
     public Mono<Integer> CountMovements(Movement mov) {
-        return findByIdClient(mov.getClientId())
+        return FindByIdPasive(mov.getPasiveId())
                 .flatMap(movements ->
                     Mono.just((int)movements.stream()
                             .filter(movement -> movement.getTypePasiveMovement() == mov.getTypePasiveMovement())

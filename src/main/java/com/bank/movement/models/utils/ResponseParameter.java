@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 public class ResponseParameter
 {
-    private List<Parameter> data;
+    private Parameter data;
 
     private String message;
 

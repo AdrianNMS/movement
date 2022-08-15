@@ -4,7 +4,7 @@ import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.documents.Movement;
 import com.bank.movement.models.utils.MovementConditions;
 import com.bank.movement.services.IMovementService;
-import com.bank.movement.services.IParameterService;
+import com.bank.movement.services.IPasiveService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class MovementRestController
     private IMovementService movementService;
 
     @Autowired
-    private IParameterService parameterService;
+    private IPasiveService pasiveService;
     private static final Logger log = LoggerFactory.getLogger(MovementRestController.class);
 
     @GetMapping
@@ -38,16 +38,17 @@ public class MovementRestController
                 .doFinally(fin -> log.info("[END] findAll Movement"));
     }
 
-    @GetMapping("/clientMovements/{idClient}")
-    public Mono<ResponseEntity<Object>> findByIdClient(@PathVariable String idClient)
+    @GetMapping("/clientMovements/{id}")
+    public Mono<ResponseEntity<Object>> findByIdPasive(@PathVariable String id)
     {
         log.info("[INI] findByIdClient Movement");
-        return movementService.findByIdClient(idClient)
+        return movementService.FindByIdPasive(id)
                 .map(movements -> ResponseHandler.response("Done", HttpStatus.OK, movements))
                 .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)))
                 .doFinally(fin -> log.info("[END] findByIdClient Movement"));
     }
+
 
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Object>> find(@PathVariable String id)
@@ -69,7 +70,7 @@ public class MovementRestController
         MovementConditions movCon = new MovementConditions();
         movCon.setMov(mov);
 
-        return MovementRestControllerCreateHelper.CreateMovementSequence(movCon, movementService,log,parameterService);
+        return MovementRestControllerCreateHelper.CreateMovementSequence(movCon, movementService,log, pasiveService);
     }
 
     @PutMapping("/{id}")
@@ -81,7 +82,7 @@ public class MovementRestController
         MovementConditions movCon = new MovementConditions();
         movCon.setMov(mov);
 
-        return MovementRestControllerUpdateHelper.UpdateMovementSequence(movCon, movementService,log,parameterService);
+        return MovementRestControllerUpdateHelper.UpdateMovementSequence(movCon, movementService,log, pasiveService);
     }
 
     @DeleteMapping("/{id}")
@@ -91,7 +92,7 @@ public class MovementRestController
         log.info(id);
 
         return movementService.Delete(id)
-                .flatMap(o -> Mono.just(ResponseHandler.response("Done", HttpStatus.NO_CONTENT, null)))
+                .flatMap(o -> Mono.just(ResponseHandler.response("Done", HttpStatus.OK, null)))
                 .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Error", HttpStatus.NO_CONTENT, null)))
                 .doFinally(fin -> log.info("[END] delete Movement"));
