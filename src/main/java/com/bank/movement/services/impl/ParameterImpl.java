@@ -1,8 +1,8 @@
 package com.bank.movement.services.impl;
 
 import com.bank.movement.models.utils.Mont;
-import com.bank.movement.models.utils.ResponseMont;
-import com.bank.movement.models.utils.ResponseParameter;
+import com.bank.movement.models.utils.responses.ResponseMont;
+import com.bank.movement.models.utils.responses.ResponseParameter;
 import com.bank.movement.services.IPasiveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

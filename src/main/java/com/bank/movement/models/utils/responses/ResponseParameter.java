@@ -1,10 +1,7 @@
-package com.bank.movement.models.utils;
+package com.bank.movement.models.utils.responses;
 
 import com.bank.movement.models.documents.Parameter;
 import lombok.Data;
-import reactor.core.publisher.Flux;
-
-import java.util.List;
 
 @Data
 public class ResponseParameter

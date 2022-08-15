@@ -1,8 +1,8 @@
 package com.bank.movement.services;
 
 import com.bank.movement.models.utils.Mont;
-import com.bank.movement.models.utils.ResponseMont;
-import com.bank.movement.models.utils.ResponseParameter;
+import com.bank.movement.models.utils.responses.ResponseMont;
+import com.bank.movement.models.utils.responses.ResponseParameter;
 import reactor.core.publisher.Mono;
 
 public interface IPasiveService {

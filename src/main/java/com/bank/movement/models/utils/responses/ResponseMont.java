@@ -1,5 +1,6 @@
-package com.bank.movement.models.utils;
+package com.bank.movement.models.utils.responses;
 
+import com.bank.movement.models.utils.Mont;
 import lombok.Data;
 
 @Data
