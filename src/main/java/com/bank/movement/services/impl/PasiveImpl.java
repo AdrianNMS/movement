@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 
 @Service
-public class ParameterImpl implements IPasiveService {
+public class PasiveImpl implements IPasiveService {
 
     @Autowired
     WebClient webClient;
