@@ -16,7 +16,6 @@ public class PasiveImpl implements IPasiveService {
     @Autowired
     WebClient webClient;
 
-
     @Override
     public Mono<ResponseParameter> getTypeParams(String idPasive)
     {
