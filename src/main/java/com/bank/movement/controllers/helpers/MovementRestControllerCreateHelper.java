@@ -2,6 +2,7 @@ package com.bank.movement.controllers.helpers;
 
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.emus.TypeMovement;
+import com.bank.movement.models.emus.TypePasiveMovement;
 import com.bank.movement.models.utils.Mont;
 import com.bank.movement.models.utils.MovementConditions;
 import com.bank.movement.services.IMovementService;
@@ -92,6 +93,9 @@ public class MovementRestControllerCreateHelper
 
     public static Mono<ResponseEntity<Object>> PayWithCreditCard(MovementConditions movCon, IMovementService movementService, Logger log, IPasiveService pasiveService)
     {
+        movCon.initMont();
+        log.info(movCon.getMov().toString());
+        log.info(movCon.getMont().toString());
         return pasiveService.payWithDebitCard(movCon.getMov().getDebitCardId(),movCon.getMont())
                 .flatMap(responseDebitCard -> {
                     if(responseDebitCard.getData())
@@ -118,10 +122,9 @@ public class MovementRestControllerCreateHelper
                     log.info(parameter.toString());
                     //Condicionales
                     movCon.setParameter(parameter.getData());
-                    if (movCon.getMov().getDebitCardId() == null || movCon.getMov().getDebitCardId().isEmpty())
-                        return PasiveMovement(movCon, movementService, log, pasiveService);
-                    else
-                        return PayWithCreditCard(movCon,movementService,log,pasiveService);
+
+                    return PasiveMovement(movCon, movementService, log, pasiveService);
+
                 })
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
@@ -148,6 +151,14 @@ public class MovementRestControllerCreateHelper
 
     public static Mono<ResponseEntity<Object>> CreateMovementSequence(MovementConditions movCon, IMovementService movementService, Logger log, IPasiveService pasiveService)
     {
-        return ObtainMont(movCon, movementService,log,pasiveService);
+        if (movCon.getMov().getDebitCardId() == null || movCon.getMov().getDebitCardId().isEmpty())
+            return ObtainMont(movCon, movementService,log,pasiveService);
+        else
+        {
+            movCon.getMov().setTypePasiveMovement(TypePasiveMovement.DEBITCARD);
+            return PayWithCreditCard(movCon,movementService,log,pasiveService);
+        }
+
+
     }
 }

@@ -12,12 +12,12 @@ public class MovementConditions
 {
     private Parameter parameter;
     private Movement mov;
-    private int movementPerMonth;
-    private float currentPasiveMont;
+    private int movementPerMonth=0;
+    private float currentPasiveMont=0;
 
     private boolean differentDates;
-    private int movementPerAccount;
-    private int maxMovementMonth;
+    private int movementPerAccount=0;
+    private int maxMovementMonth=0;
 
     private Mont mont;
 
@@ -30,6 +30,11 @@ public class MovementConditions
         if(NeedToPayCommission())
           ComissionPercentageMaxMovement();
 
+        initMont();
+    }
+
+    public void initMont()
+    {
         setMont(new Mont());
         getMont().setMont(mov.getCurrentMont());
     }
@@ -92,15 +97,6 @@ public class MovementConditions
     public boolean HaveEnoughCredit()
     {
         return (getCurrentPasiveMont() - (getMov().getCurrentMont() - getMov().getComissionMaxMont())) >=0;
-    }
-
-    public boolean canAffortUpdateMonth(Movement newMov, Movement oldMov)
-    {
-        float newMont = (oldMov.getCurrentMont() - newMov.getCurrentMont()) - getCurrentPasiveMont();
-
-        getMont().setMont(newMont);
-
-        return (newMont) >= 0;
     }
 
     public Mont getMontReceiver()

@@ -46,7 +46,7 @@ public class PasiveImpl implements IPasiveService {
     @Override
     public Mono<ResponseDebitCard> payWithDebitCard(String idDebitCard, Mont mont) {
         return webClient.put()
-                .uri("/api/active/debitCard/"+ idDebitCard)
+                .uri("/api/pasive/debitCard/"+ idDebitCard)
                 .body(Mono.just(mont), Mont.class)
                 .retrieve()
                 .bodyToMono(ResponseDebitCard.class);

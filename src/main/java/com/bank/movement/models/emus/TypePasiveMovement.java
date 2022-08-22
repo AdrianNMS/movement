@@ -10,7 +10,9 @@ public enum TypePasiveMovement {
 
     SAVING(1000),
     ACCOUNT(1001),
-    FIXEDTERM(1002);
+    FIXEDTERM(1002),
+
+    DEBITCARD(10);
 
     private final int value;
 
@@ -22,6 +24,8 @@ public enum TypePasiveMovement {
                 return ACCOUNT;
             case 1002:
                 return FIXEDTERM;
+            case 10:
+                return DEBITCARD;
         }
         return null;
     }

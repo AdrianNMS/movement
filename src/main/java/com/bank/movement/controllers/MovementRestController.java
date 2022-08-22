@@ -3,6 +3,7 @@ package com.bank.movement.controllers;
 import com.bank.movement.controllers.helpers.MovementRestControllerCreateHelper;
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.documents.Movement;
+import com.bank.movement.models.emus.TypePasiveMovement;
 import com.bank.movement.models.utils.MovementConditions;
 import com.bank.movement.services.IMovementService;
 import com.bank.movement.services.IPasiveService;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/movement")
@@ -95,7 +97,7 @@ public class MovementRestController
         log.info(id);
 
         return movementService.GetBalance(id)
-                .map(balance -> ResponseHandler.response("Done", HttpStatus.OK, balance))
+                .flatMap(balance -> Mono.just(ResponseHandler.response("Done", HttpStatus.OK, balance)))
                 .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)))
                 .doFinally(fin -> log.info("[END] getBalance Movement"));
@@ -107,10 +109,33 @@ public class MovementRestController
 
         log.info("[INI] Reports Movement");
         return movementService.ComissionReportBetween(min,max)
-                .map(comission -> ResponseHandler.response("Done", HttpStatus.OK, comission))
+                .flatMap(comission -> Mono.just(ResponseHandler.response("Done", HttpStatus.OK, comission)))
                 .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)))
                 .doFinally(fin -> log.info("[END] Reports Movement"));
+    }
+
+    @GetMapping("/report/debit/{idDebitCard}")
+    public Mono<ResponseEntity<Object>> getFist10MovementDebitCard(@Validated @PathVariable String idDebitCard)
+    {
+        log.info("[INI] getFist10MovementDebitCard Movement");
+        return movementService.FindAll()
+                .flatMap(movements -> {
+                    var listMov = movements.stream().filter(movement ->
+                            movement.getDebitCardId()!=null
+                            && !movement.getDebitCardId().isEmpty()
+                            && movement.getDebitCardId().equals(idDebitCard)
+                            && movement.getTypePasiveMovement() == TypePasiveMovement.DEBITCARD
+                            )
+                            .limit(10)
+                            .collect(Collectors.toList());
+
+                    if(!listMov.isEmpty())
+                        return Mono.just(ResponseHandler.response("Done", HttpStatus.OK, listMov));
+                    else
+                        return Mono.just(ResponseHandler.response("Empty", HttpStatus.NOT_FOUND, listMov));
+                })
+                .doFinally(fin -> log.info("[END] getFist10MovementDebitCard Movement"));
     }
 
 }
