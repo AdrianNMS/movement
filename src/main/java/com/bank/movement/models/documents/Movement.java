@@ -41,6 +41,8 @@ public class Movement extends Audit
 
     private Boolean isThirdPartyMovement;
 
+    private String debitCardId;
+
     public float getCurrentMont()
     {
         return -(getMont() + (getComissionMont() + getComissionMaxMont()));

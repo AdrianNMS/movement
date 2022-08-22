@@ -1,7 +1,6 @@
 package com.bank.movement.controllers;
 
 import com.bank.movement.controllers.helpers.MovementRestControllerCreateHelper;
-import com.bank.movement.controllers.helpers.MovementRestControllerUpdateHelper;
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.documents.Movement;
 import com.bank.movement.models.utils.MovementConditions;
@@ -18,7 +17,6 @@ import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @RestController
 @RequestMapping("/api/movement")
@@ -75,18 +73,6 @@ public class MovementRestController
         movCon.setMov(mov);
 
         return MovementRestControllerCreateHelper.CreateMovementSequence(movCon, movementService,log, pasiveService);
-    }
-
-    @PutMapping("/{id}")
-    public Mono<ResponseEntity<Object>> update(@PathVariable("id") String id,@Valid @RequestBody Movement mov)
-    {
-        log.info("[INI] update Movement");
-        log.info(id);
-
-        MovementConditions movCon = new MovementConditions();
-        movCon.setMov(mov);
-
-        return MovementRestControllerUpdateHelper.UpdateMovementSequence(movCon, movementService,log, pasiveService);
     }
 
     @DeleteMapping("/{id}")

@@ -1,6 +1,7 @@
 package com.bank.movement.services.impl;
 
 import com.bank.movement.models.utils.Mont;
+import com.bank.movement.models.utils.responses.ResponseDebitCard;
 import com.bank.movement.models.utils.responses.ResponseMont;
 import com.bank.movement.models.utils.responses.ResponseParameter;
 import com.bank.movement.services.IPasiveService;
@@ -40,5 +41,14 @@ public class PasiveImpl implements IPasiveService {
                 .body(Mono.just(mont), Mont.class)
                 .retrieve()
                 .bodyToMono(ResponseMont.class);
+    }
+
+    @Override
+    public Mono<ResponseDebitCard> payWithDebitCard(String idDebitCard, Mont mont) {
+        return webClient.put()
+                .uri("/api/active/debitCard/"+ idDebitCard)
+                .body(Mono.just(mont), Mont.class)
+                .retrieve()
+                .bodyToMono(ResponseDebitCard.class);
     }
 }

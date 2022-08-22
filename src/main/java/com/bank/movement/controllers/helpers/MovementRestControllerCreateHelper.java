@@ -2,6 +2,7 @@ package com.bank.movement.controllers.helpers;
 
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.emus.TypeMovement;
+import com.bank.movement.models.utils.Mont;
 import com.bank.movement.models.utils.MovementConditions;
 import com.bank.movement.services.IMovementService;
 import com.bank.movement.services.IPasiveService;
@@ -9,6 +10,8 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
+
+import javax.ws.rs.core.Response;
 
 public class MovementRestControllerCreateHelper
 {
@@ -85,6 +88,27 @@ public class MovementRestControllerCreateHelper
                 return Mono.just(ResponseHandler.response("You don't have enough credit", HttpStatus.BAD_REQUEST, null));
 
         }).switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
+    }
+
+    public static Mono<ResponseEntity<Object>> PayWithCreditCard(MovementConditions movCon, IMovementService movementService, Logger log, IPasiveService pasiveService)
+    {
+        return pasiveService.payWithDebitCard(movCon.getMov().getDebitCardId(),movCon.getMont())
+                .flatMap(responseDebitCard -> {
+                    if(responseDebitCard.getData())
+                    {
+                        if(movCon.getMov().getTypeMovement() == TypeMovement.DEPOSITS)
+                        {
+                            if(movCon.getMov().getIsThirdPartyMovement())
+                                return SaveMovement(movCon, movementService,log,pasiveService);
+                            else
+                                return UpdateMontReceiver(movCon, movementService,log,pasiveService);
+                        }
+                        else
+                            return SaveMovement(movCon, movementService,log,pasiveService);
+                    }
+                    else
+                        return Mono.just(ResponseHandler.response("You don't have enough credit", HttpStatus.BAD_REQUEST, null));
+                });
     }
 
     public static Mono<ResponseEntity<Object>> ObtainListParameters(MovementConditions movCon, IMovementService movementService, Logger log, IPasiveService pasiveService)
