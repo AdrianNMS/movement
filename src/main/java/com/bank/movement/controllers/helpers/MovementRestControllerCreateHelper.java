@@ -39,7 +39,12 @@ public class MovementRestControllerCreateHelper
 
                     if(responseMont1.getStatus().equalsIgnoreCase("Ok"))
                         if(movCon.getMov().getTypeMovement() == TypeMovement.DEPOSITS)
-                            return UpdateMontReceiver(movCon, movementService,log,pasiveService);
+                        {
+                            if(movCon.getMov().getIsThirdPartyMovement())
+                                return SaveMovement(movCon, movementService,log,pasiveService);
+                            else
+                                return UpdateMontReceiver(movCon, movementService,log,pasiveService);
+                        }
                         else
                             return SaveMovement(movCon, movementService,log,pasiveService);
                     else
