@@ -118,8 +118,10 @@ public class MovementRestControllerCreateHelper
                     log.info(parameter.toString());
                     //Condicionales
                     movCon.setParameter(parameter.getData());
-
-                    return PasiveMovement(movCon, movementService,log,pasiveService);
+                    if (movCon.getMov().getDebitCardId() == null || movCon.getMov().getDebitCardId().isEmpty())
+                        return PasiveMovement(movCon, movementService, log, pasiveService);
+                    else
+                        return PayWithCreditCard(movCon,movementService,log,pasiveService);
                 })
                 .switchIfEmpty(Mono.just(ResponseHandler.response("Empty", HttpStatus.NO_CONTENT, null)));
     }
