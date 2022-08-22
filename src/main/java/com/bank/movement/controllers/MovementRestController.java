@@ -133,7 +133,7 @@ public class MovementRestController
                     if(!listMov.isEmpty())
                         return Mono.just(ResponseHandler.response("Done", HttpStatus.OK, listMov));
                     else
-                        return Mono.just(ResponseHandler.response("Empty", HttpStatus.NOT_FOUND, listMov));
+                        return Mono.just(ResponseHandler.response("Empty", HttpStatus.NOT_FOUND, null));
                 })
                 .doFinally(fin -> log.info("[END] getFist10MovementDebitCard Movement"));
     }
