@@ -91,7 +91,7 @@ public class MovementConditions
 
     public boolean HaveEnoughCredit()
     {
-        return (getCurrentPasiveMont() - (getMov().getCurrentMont() - getMov().getComissionMaxMont())) >0;
+        return (getCurrentPasiveMont() - (getMov().getCurrentMont() - getMov().getComissionMaxMont())) >=0;
     }
 
     public boolean canAffortUpdateMonth(Movement newMov, Movement oldMov)
@@ -100,7 +100,7 @@ public class MovementConditions
 
         getMont().setMont(newMont);
 
-        return (newMont) > 0;
+        return (newMont) >= 0;
     }
 
     public Mont getMontReceiver()
