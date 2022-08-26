@@ -3,10 +3,16 @@ package com.bank.movement.models.utils;
 import com.bank.movement.models.documents.Movement;
 import com.bank.movement.models.documents.Parameter;
 import com.bank.movement.models.emus.TypePasiveMovement;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class MovementConditions
 {

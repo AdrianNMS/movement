@@ -1,12 +1,17 @@
 package com.bank.movement.models.documents;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
 import javax.validation.constraints.NotNull;
 
-@Data @NoArgsConstructor
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class Parameter {
 
     private String id;
