@@ -4,10 +4,7 @@ import com.bank.movement.models.emus.TypeMovement;
 import com.bank.movement.models.emus.TypePasiveMovement;
 import com.bank.movement.models.utils.Audit;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -15,10 +12,10 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Document(collection = "movements")
 public class Movement extends Audit
 {
@@ -27,7 +24,7 @@ public class Movement extends Audit
     private String pasiveId;
     @NotNull(message = "clientId must not be null")
     private String clientId;
-    @NotNull(message = "pasiveReceiverId must not be null")
+    //@NotNull(message = "pasiveReceiverId must not be null")
     private String pasiveReceiverId;
     @NotNull(message = "typeMovement must not be null")
     private TypeMovement typeMovement;

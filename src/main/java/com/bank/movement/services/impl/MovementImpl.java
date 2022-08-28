@@ -136,6 +136,4 @@ public class MovementImpl implements IMovementService
                 ).collect(Collectors.toList()))
         );
     }
-
-
 }

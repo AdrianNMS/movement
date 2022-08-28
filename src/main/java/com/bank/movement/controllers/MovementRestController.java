@@ -3,6 +3,8 @@ package com.bank.movement.controllers;
 import com.bank.movement.controllers.helpers.MovementRestControllerCreateHelper;
 import com.bank.movement.handler.ResponseHandler;
 import com.bank.movement.models.documents.Movement;
+import com.bank.movement.models.documents.MovementRegister;
+import com.bank.movement.models.emus.TypeMovement;
 import com.bank.movement.models.emus.TypePasiveMovement;
 import com.bank.movement.models.utils.MovementConditions;
 import com.bank.movement.services.IMovementService;
@@ -12,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -138,4 +142,22 @@ public class MovementRestController
                 .doFinally(fin -> log.info("[END] getFist10MovementDebitCard Movement"));
     }
 
+    @KafkaListener(topics = "movements", groupId = "movements")
+    public void receiveDebitCardPayment(@Payload MovementRegister movementRegister)
+    {
+        log.info("KAFKA INIT");
+        log.info(movementRegister.toString());
+        var mov = Movement.builder()
+                .clientId(movementRegister.getClientId())
+                .debitCardId(movementRegister.getDebitCardId())
+                .mont(movementRegister.getMont())
+                .created(LocalDateTime.now())
+                .typeMovement(TypeMovement.DEPOSITS)
+                .typePasiveMovement(TypePasiveMovement.DEBITCARD)
+                .isThirdPartyMovement(true)
+                .build();
+
+        movementService.Create(mov).doOnNext(movement -> log.info(movement.toString())).subscribe(movement -> log.info(movement.toString()));
+
+    }
 }
