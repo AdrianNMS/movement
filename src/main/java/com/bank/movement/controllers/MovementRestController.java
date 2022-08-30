@@ -12,9 +12,13 @@ import com.bank.movement.services.IPasiveService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.KafkaListenerContainerFactory;
+import org.springframework.kafka.support.converter.JsonMessageConverter;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -150,14 +154,37 @@ public class MovementRestController
         var mov = Movement.builder()
                 .clientId(movementRegister.getClientId())
                 .debitCardId(movementRegister.getDebitCardId())
+                .pasiveId(movementRegister.getPasiveId())
                 .mont(movementRegister.getMont())
                 .created(LocalDateTime.now())
                 .typeMovement(TypeMovement.DEPOSITS)
-                .typePasiveMovement(TypePasiveMovement.DEBITCARD)
-                .isThirdPartyMovement(true)
-                .build();
+                .isThirdPartyMovement(true);
 
-        movementService.Create(mov).doOnNext(movement -> log.info(movement.toString())).subscribe(movement -> log.info(movement.toString()));
+        if(movementRegister.getDebitCardId()!=null)
+        {
+            var movObject = mov.typePasiveMovement(TypePasiveMovement.DEBITCARD).build();
+            movementService.Create(movObject).doOnNext(movement -> log.info(movement.toString())).subscribe(movement -> log.info(movement.toString()));
+        }
+        else
+        {
+            pasiveService.getTypeParams(movementRegister.getPasiveId()).flatMap(responseParameter -> {
+                if(responseParameter.getData()!=null)
+                {
+                    var param = responseParameter.getData();
+                    var movObject = mov.typePasiveMovement(TypePasiveMovement.fromInteger(param.getCode())).build();
+                    log.info(movObject.toString());
+                    return Mono.just(movementService.Create(movObject)
+                            .doOnNext(movement -> log.info(movement.toString()))
+                            .subscribe(movement -> log.info(movement.toString())));
+                }
+                else
+                {
+                    log.info("Error");
+                    return Mono.empty();
+                }
+            }).subscribe();
+        }
+
 
     }
 }

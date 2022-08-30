@@ -14,4 +14,5 @@ public class MovementRegister
     private String clientId;
     private Float mont;
     private String debitCardId;
+    private String pasiveId;
 }
