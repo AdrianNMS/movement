@@ -101,6 +101,8 @@ public class MovementRestControllerCreateHelper
                 .flatMap(responseDebitCard -> {
                     if(responseDebitCard.getData())
                     {
+                        log.info("payWithDebitCard");
+                        log.info(responseDebitCard.toString());
                         if(movCon.getMov().getTypeMovement() == TypeMovement.DEPOSITS)
                         {
                             if(movCon.getMov().getIsThirdPartyMovement())
