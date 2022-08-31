@@ -19,9 +19,10 @@ public class MovementRestControllerCreateHelper
     public static Mono<ResponseEntity<Object>> SaveMovement(MovementConditions movCon, IMovementService movementService, Logger log, IPasiveService pasiveService)
     {
         return movementService.Create(movCon.getMov())
-                .map(movement -> ResponseHandler.response("Done", HttpStatus.OK, movement)                )
+                .flatMap(movement -> Mono.just(ResponseHandler.response("Done", HttpStatus.OK, movement)))
                 .onErrorResume(error -> Mono.just(ResponseHandler.response(error.getMessage(), HttpStatus.BAD_REQUEST, null)))
                 .doFinally(fin -> log.info("[END] create Movement"));
+
     }
 
     public static Mono<ResponseEntity<Object>> UpdateMontReceiver(MovementConditions movCon, IMovementService movementService, Logger log, IPasiveService pasiveService)
