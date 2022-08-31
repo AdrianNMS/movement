@@ -128,8 +128,8 @@ public class MovementImpl implements IMovementService
                         Utils.BetweenDates(movement.getCreated(), localDateTimeMin, localDateTimeMax)
                 ).map(movement -> ComissionReport.
                         builder()
-                        .idEmisor(movement.getPasiveId())
-                        .idReceptor(movement.getPasiveReceiverId())
+                        .idEmisor((movement.getPasiveId() != null)? movement.getPasiveId() : movement.getDebitCardId())
+                        .idReceptor((!movement.getIsThirdPartyMovement()) ? movement.getPasiveReceiverId() : "ThirdParty")
                         .Mont(movement.getMont())
                         .MontComission(movement.getComissionMont()+movement.getComissionMaxMont())
                         .build()

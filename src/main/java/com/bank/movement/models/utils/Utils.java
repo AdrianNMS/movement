@@ -7,14 +7,9 @@ import java.time.temporal.ChronoField;
 
 public class Utils
 {
-    public static boolean Between(int variable, int minValueInclusive, int maxValueInclusive) {
-        return variable >= minValueInclusive && variable <= maxValueInclusive;
-    }
-
     public static boolean BetweenDates(LocalDateTime date, LocalDateTime minDate, LocalDateTime maxDate)
     {
-        return Between(date.getYear(),minDate.getYear(), maxDate.getYear()) &&
-                Between(date.getMonthValue(),minDate.getMonthValue(),maxDate.getMonthValue());
+        return date.isAfter(minDate.minusDays(1))&& date.isBefore(maxDate.plusDays(1));
     }
 
     public static LocalDateTime parseLocalDate(String date)
